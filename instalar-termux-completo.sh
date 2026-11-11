@@ -23,7 +23,7 @@ pkg install fastfetch tmux viu chafa yazi openssh curl git golang -y
 # 4. Baixar e compilar o Pixterm
 echo "[4/6] Compilando o Pixterm..."
 rm -rf ~/pixterm
-git clone https://github.com ~/pixterm
+git clone https://github.com/eliukblau/pixterm.git ~/pixterm
 cd ~/pixterm || exit
 go install ./cmd/pixterm
 cp ~/go/bin/pixterm "$PREFIX/bin/"
@@ -33,9 +33,9 @@ rm -rf ~/pixterm
 # 5. Configurar tema Dracula e JetBrainsMono Nerd Font
 echo "[5/6] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
 mkdir -p ~/.termux
-curl -fsSL https://githubusercontent.com -o ~/.termux/colors.properties
-curl -fsSL https://github.com -o ~/.termux/font.ttf
-
+curl -fsSL https://githubusercontent.com/dracula/termux/master/colors.properties -o ~/.termux/colors.properties
+# curl -fsSL https://github.com -o ~/.termux/font.ttf
+curl -fsSL https://github.com/ryanoasis/nerd-fonts/blob/adbd16ab7ca911eaca7ce3b0f2b7994207c7ecae/patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf -o ~/.termux/font.ttf
 # 6. Configurar Tmux, aliases e funcao layout
 echo "[6/6] Configurando Tmux, atalhos e layout..."
 touch ~/.hushlogin
