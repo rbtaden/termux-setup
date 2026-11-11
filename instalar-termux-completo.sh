@@ -4,6 +4,9 @@ echo "=================================================="
 echo "   Instalacao Automatizada - Termux Completo      "
 echo "=================================================="
 
+# URL base dos arquivos salvos no seu repositorio (pasta assets)
+REPO_ASSETS="https://githubusercontent.com"
+
 # 1. Solicitar permissao de armazenamento
 if [ ! -d ~/storage ]; then
     echo "[1/6] Solicitando permissao de armazenamento..."
@@ -20,21 +23,23 @@ yes | pkg upgrade -y -o Dpkg::Options::="--force-confold"
 echo "[3/6] Instalando fastfetch, tmux, viu, chafa, yazi, openssh e golang..."
 pkg install fastfetch tmux viu chafa yazi openssh curl git golang -y
 
-# 4. Baixar e compilar o Pixterm
+# 4. Baixar e compilar o Pixterm a partir da pasta assets do seu repositorio
 echo "[4/6] Compilando o Pixterm..."
-rm -rf ~/pixterm
-git clone https://github.com/eliukblau/pixterm.git ~/pixterm 
+rm -rf ~/pixterm ~/pixterm.tar
+curl -fsSL "${REPO_ASSETS}/pixterm.tar" -o ~/pixterm.tar
+tar -xf ~/pixterm.tar -C ~
+rm -f ~/pixterm.tar
 cd ~/pixterm || exit
 go install ./cmd/pixterm
 cp ~/go/bin/pixterm "$PREFIX/bin/"
 cd ~ || exit
 rm -rf ~/pixterm
 
-# 5. Configurar tema Dracula e JetBrainsMono Nerd Font
+# 5. Configurar tema Dracula e JetBrainsMono Nerd Font a partir da pasta assets
 echo "[5/6] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
 mkdir -p ~/.termux
-curl -fsSL https://raw.githubusercontent.com/dracula/termux/master/colors.properties -o ~/.termux/colors.properties
-curl -fsSL https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf -o ~/.termux/font.ttf
+curl -fsSL "${REPO_ASSETS}/colors.properties" -o ~/.termux/colors.properties
+curl -fsSL "${REPO_ASSETS}/JetBrainsMonoNerdFontMono-Regular.ttf" -o ~/.termux/font.ttf
 
 # 6. Configurar Tmux, aliases e funcao layout
 echo "[6/6] Configurando Tmux, atalhos e layout..."
