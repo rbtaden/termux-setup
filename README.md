@@ -1,6 +1,6 @@
-# termux-setup# Termux Setup Automatizado
+# Termux Setup Automatizado
 
-Script de instalação e personalização completa para o *Termux* no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal e atalhos para acesso remoto via Tailscale SSH.
+Script de instalação e personalização completa para o *Termux* no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal e atalhos para acesso remoto via Tailscale SSH, utilizando dependências próprias armazenadas na pasta assets/ deste repositório.
 
 ---
 
@@ -9,11 +9,8 @@ Script de instalação e personalização completa para o *Termux* no Android. C
 Abra o *Termux* recém-instalado no Android e execute o comando único abaixo:
 
 bash
-pkg install curl -y && curl -fsSL <URL_INSTALADOR> -o setup.sh && chmod +x setup.sh && ./setup.sh
+pkg install curl -y && curl -fsSL https://raw.githubusercontent.com/rbtaden/termux-setup/main/instalar-termux-completo.sh -o setup.sh && chmod +x setup.sh && ./setup.sh
 
-
-> *Nota sobre a URL:* Substitua <URL_INSTALADOR> pela junção sem espaços de:
-> https://githubusercontent.com + termux-setup/main/ + instalar-termux-completo.sh
 
 ### Durante a instalação
 * O sistema solicitará *permissão de armazenamento* (termux-setup-storage). Toque em *Permitir*.
@@ -24,10 +21,10 @@ pkg install curl -y && curl -fsSL <URL_INSTALADOR> -o setup.sh && chmod +x setup
 
 ## O que este script instala e configura
 
-* *Visual e Tipografia:* Tema de cores *Dracula* (colors.properties) e fonte *JetBrainsMono Nerd Font* (font.ttf) com suporte a ícones.
+* *Visual e Tipografia:* Tema de cores *Dracula* (colors.properties) e fonte *JetBrainsMono Nerd Font* (font.ttf) com suporte a ícones, carregados diretamente da pasta assets/.
 * *Informações do Sistema:* *Fastfetch* configurado para iniciar automaticamente ao abrir o terminal (~/.bashrc) e mensagem padrão ocultada (~/.hushlogin).
 * *Gerenciador de Arquivos:* *Yazi* para navegação visual com ícones e pré-visualização.
-* *Visualizadores de Imagem no Terminal:* *Pixterm* (compilado automaticamente via Go), *Viu* e *Chafa*.
+* *Visualizadores de Imagem no Terminal:* *Pixterm* (extraído de assets/pixterm.tar e compilado automaticamente via Go), *Viu* e *Chafa*.
 * *Multiplexador de Terminal:* *Tmux* pré-configurado (~/.tmux.conf) com suporte a toque na tela (mouse on) e prefixo alterado para Ctrl + a.
 
 ---
