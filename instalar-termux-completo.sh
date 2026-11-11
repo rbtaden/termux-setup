@@ -5,7 +5,7 @@ echo "   Instalacao Automatizada - Termux Completo      "
 echo "=================================================="
 
 # URL base dos arquivos salvos no seu repositorio (pasta assets)
-REPO_ASSETS="https://githubusercontent.com"
+REPO_ASSETS="https://raw.githubusercontent.com/rbtaden/termux-setup/main/assets"
 
 # 1. Solicitar permissao de armazenamento
 if [ ! -d ~/storage ]; then
