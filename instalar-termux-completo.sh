@@ -34,8 +34,12 @@ rm -rf ~/pixterm
 echo "[5/6] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
 mkdir -p ~/.termux
 curl -fsSL https://githubusercontent.com/dracula/termux/master/colors.properties -o ~/.termux/colors.properties
-# curl -fsSL https://github.com -o ~/.termux/font.ttf
+
+# patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf
+# https://github.com/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Regular/JetBrainsMonoNerdFont-Regular.ttf
+# https://github.com/ryanoasis/nerd-fonts/blob/adbd16ab7ca911eaca7ce3b0f2b7994207c7ecae/patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf
 curl -fsSL https://github.com/ryanoasis/nerd-fonts/blob/adbd16ab7ca911eaca7ce3b0f2b7994207c7ecae/patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf -o ~/.termux/font.ttf
+
 # 6. Configurar Tmux, aliases e funcao layout
 echo "[6/6] Configurando Tmux, atalhos e layout..."
 touch ~/.hushlogin
