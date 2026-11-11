@@ -8,9 +8,9 @@ Script de instalação e personalização completa para o *Termux* no Android. C
 
 Abra o *Termux* recém-instalado no Android e execute o comando único abaixo:
 
-bash
-pkg install curl -y && curl -fsSL https://raw.githubusercontent.com/rbtaden/termux-setup/main/instalar-termux-completo.sh -o setup.sh && chmod +x setup.sh && ./setup.sh
-
+'''bash
+apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://raw.githubusercontent.com/rbtaden/termux-setup/main/instalar-termux-completo.sh -o setup.sh && chmod +x setup.sh && ./setup.sh
+'''
 
 ### Durante a instalação
 * O sistema solicitará *permissão de armazenamento* (termux-setup-storage). Toque em *Permitir*.
