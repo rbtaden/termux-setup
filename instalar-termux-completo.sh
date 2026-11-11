@@ -23,7 +23,7 @@ pkg install fastfetch tmux viu chafa yazi openssh curl git golang -y
 # 4. Baixar e compilar o Pixterm
 echo "[4/6] Compilando o Pixterm..."
 rm -rf ~/pixterm
-git clone https://github.com/eliukblau/pixterm.git ~/pixterm
+git clone <URL_PIXTERM> ~/pixterm
 cd ~/pixterm || exit
 go install ./cmd/pixterm
 cp ~/go/bin/pixterm "$PREFIX/bin/"
@@ -33,10 +33,8 @@ rm -rf ~/pixterm
 # 5. Configurar tema Dracula e JetBrainsMono Nerd Font
 echo "[5/6] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
 mkdir -p ~/.termux
-# curl -fsSL <URL_DRACULA> -o ~/.termux/colors.properties
-curl -fsSL https://githubusercontent.com/dracula/termux/master/colors.properties -o ~/.termux/colors.properties
-# curl -fsSL <URL_FONTE> -o ~/.termux/font.ttf
-curl -fsSL https://github.com/ryanoasis/nerd-fonts/blob/adbd16ab7ca911eaca7ce3b0f2b7994207c7ecae/patched-fonts/JetBrainsMono/Ligatures/JetBrainsMonoNerdFontMono-Regular.ttf -o ~/.termux/font.ttf
+curl -fsSL <URL_DRACULA> -o ~/.termux/colors.properties
+curl -fsSL <URL_FONTE> -o ~/.termux/font.ttf
 
 # 6. Configurar Tmux, aliases e funcao layout
 echo "[6/6] Configurando Tmux, atalhos e layout..."
@@ -73,10 +71,6 @@ alias downloads='cd /sdcard/Download && ls -la'
 alias fotos='cd /sdcard/Pictures && ls -la'
 alias painel='tmux new-session \; split-window -h \; attach'
 
-# Acesso rapido ao Linux Mint via Tailscale SSH
-alias mint='ssh taden@100.106.98.88'
-alias puxar='scp -r taden@100.106.98.88:~/'
-
 # Layout completo (Yazi no topo, Fastfetch embaixo-esquerda, Terminal limpo embaixo-direita)
 layout() {
   tmux new-session -d -s vitrine 'yazi'
@@ -86,6 +80,27 @@ layout() {
   tmux attach-session -t vitrine
 }
 EOF
+
+# --- Configuracao Interativa de Acesso Remoto (Tailscale SSH) ---
+echo ""
+echo "--------------------------------------------------"
+echo " Configuracao Opcional: Acesso Remoto SSH (PC)"
+echo " (Pressione Enter em branco para pular esta etapa)"
+echo "--------------------------------------------------"
+read -rp "Digite o usuario do PC (ex: joao): " SSH_USER
+read -rp "Digite o IP Tailscale do PC (ex: 100.x.x.x): " SSH_IP
+
+if [ -n "$SSH_USER" ] && [ -n "$SSH_IP" ]; then
+  cat << EOF >> ~/.bashrc
+
+# Acesso rapido ao PC via Tailscale SSH
+alias mint='ssh ${SSH_USER}@${SSH_IP}'
+alias puxar='scp -r ${SSH_USER}@${SSH_IP}:~/'
+EOF
+  echo "Atalhos 'mint' e 'puxar' configurados para ${SSH_USER}@${SSH_IP}!"
+else
+  echo "Configuracao SSH ignorada."
+fi
 
 termux-reload-settings
 source ~/.bashrc
