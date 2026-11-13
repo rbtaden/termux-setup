@@ -33,7 +33,7 @@ pkg install -y net-tools iproute2 dnsutils inetutils traceroute nmap curl wget w
 
 # 6. Instalar utilitários Bash, Arquivos e Monitoramento
 echo "[4/6] Instalando utilitarios Bash e sistema..."
-pkg install -y coreutils findutils grep sed gawk jq tree zip unzip tar p7zip htop tmux git nano vim file which util-linux procps termux-tools
+pkg install -y coreutils findutils grep sed gawk jq tree zip unzip tar htop tmux git nano vim file which util-linux procps termux-tools
 
 # 7. Criar executável para o comando 'who' (omitido no coreutils do Android)
 echo "[5/6] Configurando comando 'who'..."
