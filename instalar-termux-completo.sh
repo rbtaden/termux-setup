@@ -49,14 +49,16 @@ wget -q --show-progress -O "$HOME/.gnuchess/gm.pgn" https://pgnmentor.com
 printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -f gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess\n' > $PREFIX/bin/xadrez
 chmod +x $PREFIX/bin/xadrez
 
-echo "=========================================="
-echo "  Instalacao em andamento, aguarde!       "
-echo "=========================================="
+echo "==========================================================="
+echo "  Instalacao em andamento, aguarde e anote alguns comandos!"
+echo "==========================================================="
 echo "Comandos rapidos disponiveis:"
 echo " - termux-setup-storage  -> Libera acesso a /sdcard"
+echo " - who                   -> Exibe usuario e sessao atual"
 echo " - xadrez                -> Inicia GNU Chess com livro de aberturas"
 echo " - stockfish             -> Abre o motor UCI Stockfish"
-echo " - who                   -> Exibe usuario e sessao atual"
+echo " - layout                -> Interface customizada"
+echo " - mint                  -> Acesso HOST remoto - SSH"
 EOF
 
 # 9. Baixar e compilar o Pixterm a partir da pasta assets do seu repositorio
