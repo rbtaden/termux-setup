@@ -40,8 +40,8 @@ echo "[7/11] Configurando comando 'who'..."
 printf '#!/data/data/com.termux/files/usr/bin/sh\necho "$(whoami) pts/0 $(date "+%%Y-%%m-%%d %%H:%%M")"\n' > $PREFIX/bin/who
 chmod +x $PREFIX/bin/who
 
-# 8. Instalar GNU Chess, Stockfish, Python-Chess e configurar atalhos
-echo "[8/11] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez' e 'sf'..."
+# 8. Instalar GNU Chess, Stockfish, Python-Chess e configurar atalhos e estudos PGN
+echo "[8/11] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez', 'sf' e 'analisar'..."
 pkg install -y gnuchess stockfish python
 pip install --quiet chess
 
@@ -50,7 +50,7 @@ curl -fsSL "https://www.pgnmentor.com/players/Kasparov.zip" -o "$HOME/.gnuchess/
 unzip -p "$HOME/.gnuchess/gm.zip" > "$HOME/.gnuchess/gm.pgn"
 rm -f "$HOME/.gnuchess/gm.zip"
 
-printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -s gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess 2>&1 | grep --line-buffered -v "Bad address"\n' > $PREFIX/bin/xadrez
+printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -s gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | go (jogar de pretas) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess 2>&1 | grep --line-buffered -v "Bad address"\n' > $PREFIX/bin/xadrez
 chmod +x $PREFIX/bin/xadrez
 
 cat << 'EOF' > ~/jogar_stockfish.py
@@ -132,6 +132,107 @@ if len(board.move_stack) > 0:
     print(f"Historico salvo em: {filename}")
 EOF
 
+# Criar pasta com partidas classicas em PGN para estudo
+mkdir -p ~/estudos_pgn
+
+cat << 'EOF' > ~/estudos_pgn/opera.pgn
+[Event "Paris"]
+[Site "Paris FRA"]
+[Date "1858.??.??"]
+[White "Paul Morphy"]
+[Black "Duke Karl / Count Isouard"]
+[Result "1-0"]
+
+1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0
+EOF
+
+cat << 'EOF' > ~/estudos_pgn/pastor.pgn
+[Event "Estudo de Abertura"]
+[Site "Online"]
+[Date "2024.01.01"]
+[White "Brancas"]
+[Black "Pretas"]
+[Result "1-0"]
+
+1. e4 e5 2. Qh5 Nc6 3. Bc4 Nf6 4. Qxf7# 1-0
+EOF
+
+cat << 'EOF' > ~/estudos_pgn/capablanca.pgn
+[Event "Simultanea"]
+[Site "Nova York EUA"]
+[Date "1910.??.??"]
+[White "Jose Raul Capablanca"]
+[Black "Amateur"]
+[Result "1-0"]
+
+1. e4 e5 2. Nf3 Nc6 3. Bc4 d6 4. Nc3 Bg4 5. Nxe5 Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0
+EOF
+
+# Criar script de analise lance a lance com Stockfish
+cat << 'EOF' > ~/analisar_pgn.py
+import sys
+import os
+import chess
+import chess.pgn
+import chess.engine
+
+if len(sys.argv) < 2:
+    print("Uso: analisar <arquivo.pgn>")
+    print("Exemplos prontos em: ~/estudos_pgn/opera.pgn | pastor.pgn | capablanca.pgn")
+    sys.exit(1)
+
+arquivo_pgn = sys.argv[1]
+if not os.path.isfile(arquivo_pgn):
+    print(f"Arquivo nao encontrado: {arquivo_pgn}")
+    sys.exit(1)
+
+engine = chess.engine.SimpleEngine.popen_uci("stockfish")
+
+with open(arquivo_pgn) as pgn:
+    jogo = chess.pgn.read_game(pgn)
+
+if not jogo:
+    print("Nenhuma partida valida encontrada no arquivo.")
+    engine.quit()
+    sys.exit(1)
+
+print("\n=== Analise Stockfish ===")
+print(f"Partida: {jogo.headers.get('White', '?')} vs {jogo.headers.get('Black', '?')}")
+print(f"Resultado: {jogo.headers.get('Result', '*')}\n")
+
+tabuleiro = jogo.board()
+
+for numero_lance, lance in enumerate(jogo.mainline_moves(), start=1):
+    turno = (numero_lance + 1) // 2
+    cor = "Brancas" if tabuleiro.turn == chess.WHITE else "Pretas"
+    lance_san = tabuleiro.san(lance)
+    
+    info_antes = engine.analyse(tabuleiro, chess.engine.Limit(time=0.2))
+    melhor_lance = tabuleiro.san(info_antes["pv"][0]) if "pv" in info_antes and len(info_antes["pv"]) > 0 else "-"
+    
+    tabuleiro.push(lance)
+    
+    info_depois = engine.analyse(tabuleiro, chess.engine.Limit(time=0.2))
+    score = info_depois["score"].white()
+    
+    if score.is_mate():
+        avaliacao = f"Mate em {score.mate()}"
+    else:
+        avaliacao = f"{score.score() / 100:+.2f}"
+
+    print("=" * 35)
+    print(f"Lance {turno} ({cor}): {lance_san}")
+    print(f"Melhor lance seria: {melhor_lance} | Avaliacao: {avaliacao}")
+    print(tabuleiro.unicode(invert_color=True, borders=True, empty_square=" "))
+    
+    resp = input("\n[Enter] Proximo lance | [q] Sair: ").strip().lower()
+    if resp == "q":
+        break
+
+engine.quit()
+print("\nAnalise encerrada.")
+EOF
+
 echo "==========================================================="
 echo "  Instalacao em andamento, aguarde e anote alguns comandos!"
 echo "==========================================================="
@@ -151,6 +252,7 @@ echo " - img                   -> Exibe a imagem no terminal usando o Chafa"
 echo " - pixterm -s 2          -> Exibe a imagem em blocos coloridos com o Pixterm"
 echo " - xadrez                -> Inicia GNU Chess com livro de aberturas"
 echo " - sf                    -> Inicia Stockfish interativo (Elo, dicas e PGN)"
+echo " - analisar <arquivo>    -> Analisa partidas .pgn lance a lance com Stockfish"
 echo " - stockfish             -> Abre o motor UCI Stockfish puro"
 echo " - atualizar             -> Atualiza pacotes Termux (pkg update && pkg upgrade -y)"
 echo " - mint                  -> Acesso HOST remoto - (ssh usuario@ip)"
@@ -212,6 +314,7 @@ alias downloads='cd /sdcard/Download && ls -la'
 alias fotos='cd /sdcard/Pictures && ls -la'
 alias painel='tmux new-session \; split-window -h \; attach'
 alias sf='python ~/jogar_stockfish.py'
+alias analisar='python ~/analisar_pgn.py'
 
 # Layout completo (Yazi no topo, Fastfetch embaixo-esquerda, Terminal limpo embaixo-direita)
 layout() {
