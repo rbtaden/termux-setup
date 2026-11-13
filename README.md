@@ -1,6 +1,6 @@
-# Termux Setup Automatizado
+# Termux Setup Automatizado com ferramentas de estudo de Xadrez
 
-Script de instalação e personalização completa para o **Termux** no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal, motores de xadrez interativos e atalhos para acesso remoto via Tailscale SSH, utilizando dependências próprias armazenadas na pasta `assets/` deste repositório.
+Script de instalação e personalização completa para o **Termux** no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal, motores de xadrez interativos com análise PGN e atalhos para acesso remoto via Tailscale SSH, utilizando dependências próprias armazenadas na pasta `assets/` deste repositório.
 
 ---
 
@@ -26,7 +26,11 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 * **Gerenciador de Arquivos:** **Yazi** para navegação visual com ícones e pré-visualização.
 * **Visualizadores de Imagem no Terminal:** **Pixterm** (extraído de `assets/pixterm.tar` e compilado automaticamente via Go), **Viu** e **Chafa**.
 * **Multiplexador de Terminal:** **Tmux** pré-configurado (`~/.tmux.conf`) com suporte a toque na tela (`mouse on`) e prefixo alterado para `Ctrl + a`.
-* **Xadrez no Terminal:** **GNU Chess** com livro de aberturas e **Stockfish** com interface interativa em Python (`~/jogar_stockfish.py`), permitindo definir o nível Elo, escolher entre peças brancas ou pretas, pedir dicas (`hint`), desfazer jogadas (`undo`) e exportar partidas em `.pgn` direto para a pasta `Downloads`.
+* **Xadrez, Estudo e Análise PGN:**
+  * **GNU Chess (`xadrez`):** Configurado com livro de aberturas real (partidas de Garry Kasparov extraídas do PGN Mentor), filtro de limpeza de avisos internos (`Bad address`) e suporte ao comando `go` para iniciar com as peças pretas.
+  * **Stockfish Interativo (`sf`):** Interface em Python (`~/jogar_stockfish.py`) com tabuleiro visual limpo, escolha de nível Elo (1320 a 3190), escolha de cor, dicas (`hint`), desfazer jogadas (`undo`) e exportação automática de partidas em `.pgn` direto para a pasta `Downloads`.
+  * **Analisador de Partidas (`analisar`):** Script em Python (`~/analisar_pgn.py`) que lê qualquer arquivo `.pgn`, desenha o tabuleiro lance a lance e exibe a avaliação numérica do Stockfish junto com o melhor lance sugerido.
+  * **Biblioteca de Estudos (`~/estudos_pgn/`):** Partidas clássicas pré-instaladas (`opera.pgn` de Paul Morphy, `pastor.pgn` e `capablanca.pgn`) prontas para treino e análise imediata.
 * **Ferramentas de Rede e Sistema:** Pacotes essenciais como `nmap`, `traceroute`, `whois`, `netcat-openbsd`, `htop`, `tree`, `jq` e `tur-repo`.
 
 ---
@@ -50,8 +54,9 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 | `foto <imagem>` | Exibe a imagem no terminal usando o **Viu**. |
 | `img <imagem>` | Exibe a imagem no terminal usando o **Chafa**. |
 | `pixterm -s 2 <imagem>` | Exibe a imagem em blocos coloridos de alta definição usando o **Pixterm**. |
-| `xadrez` | Inicia **GNU Chess** com livro de aberturas. |
-| `sf` | Inicia **Stockfish** interativo com tabuleiro visual, escolha de Elo/cor, `hint`, `undo` e exportação automática de `.pgn` para `Downloads`. |
+| `xadrez` | Inicia **GNU Chess** com livro de aberturas (digite `go` no início para jogar de pretas). |
+| `sf` | Inicia **Stockfish** interativo com tabuleiro limpo, escolha de Elo/cor, `hint`, `undo` e exportação de `.pgn` para `Downloads`. |
+| `analisar <arquivo.pgn>` | Analisa uma partida `.pgn` lance a lance com avaliação do Stockfish (ex: `analisar ~/estudos_pgn/opera.pgn`). |
 | `stockfish` | Abre o motor UCI **Stockfish** puro. |
 | `atualizar` | Atualiza todos os pacotes do Termux (`pkg update && pkg upgrade -y`). |
 
