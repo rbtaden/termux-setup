@@ -50,7 +50,7 @@ curl -fsSL "https://www.pgnmentor.com/players/Kasparov.zip" -o "$HOME/.gnuchess/
 unzip -p "$HOME/.gnuchess/gm.zip" > "$HOME/.gnuchess/gm.pgn"
 rm -f "$HOME/.gnuchess/gm.zip"
 
-printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -s gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess\n' > $PREFIX/bin/xadrez
+printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -s gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess 2>&1 | grep --line-buffered -v "Bad address"\n' > $PREFIX/bin/xadrez
 chmod +x $PREFIX/bin/xadrez
 
 cat << 'EOF' > ~/jogar_stockfish.py
@@ -77,7 +77,7 @@ print("Comandos: e4 (jogar) | hint (dica) | undo (voltar) | quit (sair)\n")
 
 while not board.is_game_over():
     if board.turn == user_color:
-        print(board.unicode(invert_color=True, borders=True, orientation=user_color))
+        print(board.unicode(invert_color=True, borders=True, orientation=user_color, empty_square=" "))
         move_str = input("\nSeu lance: ").strip()
         
         if move_str == "quit":
@@ -110,7 +110,7 @@ while not board.is_game_over():
 engine.quit()
 
 if board.is_game_over():
-    print(board.unicode(invert_color=True, borders=True, orientation=user_color))
+    print(board.unicode(invert_color=True, borders=True, orientation=user_color, empty_square=" "))
     print(f"Fim de jogo! Resultado: {board.result()}")
 else:
     print("Partida encerrada.")
