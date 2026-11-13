@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 echo "=================================================="
-echo "   Instalacao Automatizada - Termux Completo      "
+echo "   Instalacao Customizada Automatizada - Termux   "
 echo "=================================================="
 
 # URL base dos arquivos salvos no seu repositorio (pasta assets)
@@ -164,7 +164,7 @@ termux-reload-settings
 source ~/.bashrc
 
 echo "=================================================="
-echo "   Instalacao concluida! Reinicie o Termux.       "
+echo " Instalacao concluida! Reinicie o Termux (exit).  "
 echo "=================================================="
 
 chmod +x ~/setup_termux.sh && ~/setup_termux.sh
