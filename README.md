@@ -37,17 +37,22 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 
 | Comando | Função |
 | :--- | :--- |
+| termux-setup-storage | Libera acesso a /sdcard. |
+| who | Exibe usuario e sessao atual. |
+| c | Limpa a tela do terminal (clear). |
+| exit | Fecha o painel atual. |
 | layout | Abre o *Tmux* dividido em 3 painéis (*Yazi* no topo, *Fastfetch* embaixo à esquerda e terminal limpo embaixo à direita). |
 | painel | Inicia o *Tmux* dividido rapidamente em 2 painéis lado a lado. |
+| info | Executa o *Fastfetch* manualmente. |
 | arquivos | Abre o gerenciador de arquivos visual *Yazi*. |
+| downloads | Acessa /sdcard/Download e lista os arquivos. |
+| fotos | Acessa /sdcard/Pictures e lista os arquivos. |
 | foto <imagem> | Exibe a imagem no terminal usando o *Viu*. |
 | img <imagem> | Exibe a imagem no terminal usando o *Chafa*. |
 | pixterm -s 2 <imagem> | Exibe a imagem em blocos coloridos de alta definição usando o *Pixterm*. |
-| downloads | Acessa /sdcard/Download e lista os arquivos. |
-| fotos | Acessa /sdcard/Pictures e lista os arquivos. |
-| info | Executa o *Fastfetch* manualmente. |
+| xadrez | Inicia GNU Chess com livro de aberturas. |
+| stockfish | Abre o motor UCI Stockfish. |
 | atualizar | Atualiza todos os pacotes do Termux (pkg update && pkg upgrade -y). |
-| c | Limpa a tela do terminal (clear). |
 
 ### Acesso Remoto (Tailscale SSH)
 (Disponível caso o usuário e IP do PC tenham sido informados durante a instalação)
@@ -55,7 +60,7 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 | Comando | Função |
 | :--- | :--- |
 | mint | Conecta-se remotamente ao terminal do PC via SSH (ssh usuario@ip). |
-| puxar <caminho> . | Copia arquivos ou pastas da pasta pessoal do PC para o diretório atual no Android via scp. |
+| puxar <caminho>  | Copia arquivos ou pastas da pasta pessoal do PC para o diretório atual no Android via SCP. |
 
 ---
 
