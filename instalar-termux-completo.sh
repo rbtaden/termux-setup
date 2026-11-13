@@ -45,10 +45,16 @@ echo "[8/11] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez', '
 pkg install -y gnuchess stockfish python
 pip install --quiet chess
 
-mkdir -p "$HOME/.gnuchess"
-curl -fsSL "https://www.pgnmentor.com/players/Kasparov.zip" -o "$HOME/.gnuchess/gm.zip"
-unzip -p "$HOME/.gnuchess/gm.zip" > "$HOME/.gnuchess/gm.pgn"
-rm -f "$HOME/.gnuchess/gm.zip"
+mkdir -p "$HOME/.gnuchess" ~/estudos_pgn
+
+for JOGADOR in Alekhine Capablanca Carlsen Fischer Kasparov Tal; do
+    echo "Baixando colecao PGN: ${JOGADOR}..."
+    curl -fsSL "${REPO_ASSETS}/${JOGADOR}.zip" -o "$HOME/estudos_pgn/${JOGADOR}.zip"
+    unzip -p "$HOME/estudos_pgn/${JOGADOR}.zip" > "$HOME/estudos_pgn/${JOGADOR}.pgn"
+    rm -f "$HOME/estudos_pgn/${JOGADOR}.zip"
+done
+
+cp "$HOME/estudos_pgn/Kasparov.pgn" "$HOME/.gnuchess/gm.pgn"
 
 printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -s gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | go (jogar de pretas) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess 2>&1 | grep --line-buffered -v "Bad address"\n' > $PREFIX/bin/xadrez
 chmod +x $PREFIX/bin/xadrez
@@ -132,9 +138,6 @@ if len(board.move_stack) > 0:
     print(f"Historico salvo em: {filename}")
 EOF
 
-# Criar pasta com partidas classicas em PGN para estudo
-mkdir -p ~/estudos_pgn
-
 cat << 'EOF' > ~/estudos_pgn/opera.pgn
 [Event "Paris"]
 [Site "Paris FRA"]
@@ -168,38 +171,90 @@ cat << 'EOF' > ~/estudos_pgn/capablanca.pgn
 1. e4 e5 2. Nf3 Nc6 3. Bc4 d6 4. Nc3 Bg4 5. Nxe5 Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0
 EOF
 
-# Criar script de analise lance a lance e relatorio de blunders com Stockfish
+# Criar script de analise interativa com menu de arquivos, selecao de partidas e relatorio de blunders
 cat << 'EOF' > ~/analisar_pgn.py
 import sys
 import os
+import glob
 import chess
 import chess.pgn
 import chess.engine
 
-if len(sys.argv) < 2:
-    print("Uso: analisar <arquivo.pgn>")
-    print("Exemplos prontos em: ~/estudos_pgn/opera.pgn | pastor.pgn | capablanca.pgn")
+def escolher_arquivo():
+    pastas = [
+        os.path.expanduser("~/estudos_pgn"),
+        "/data/data/com.termux/files/home/storage/downloads"
+    ]
+    arquivos = []
+    for p in pastas:
+        if os.path.isdir(p):
+            arquivos.extend(sorted(glob.glob(os.path.join(p, "*.pgn"))))
+            
+    if not arquivos:
+        print("Nenhum arquivo .pgn encontrado em ~/estudos_pgn ou Downloads.")
+        sys.exit(1)
+        
+    print("\n=== Arquivos PGN Disponiveis ===")
+    for idx, arq in enumerate(arquivos, start=1):
+        pasta_nome = "Downloads" if "downloads" in arq.lower() else "estudos_pgn"
+        print(f" [{idx}] {os.path.basename(arq)} ({pasta_nome})")
+        
+    escolha = input("\nDigite o numero ou o nome do arquivo (Enter para sair): ").strip()
+    if not escolha:
+        sys.exit(0)
+    if escolha.isdigit() and 1 <= int(escolha) <= len(arquivos):
+        return arquivos[int(escolha) - 1]
+    for arq in arquivos:
+        if os.path.basename(arq).lower() == escolha.lower() or arq == escolha:
+            return arq
+    print("Arquivo nao encontrado.")
     sys.exit(1)
 
-arquivo_pgn = sys.argv[1]
-if not os.path.isfile(arquivo_pgn):
-    print(f"Arquivo nao encontrado: {arquivo_pgn}")
-    sys.exit(1)
+def escolher_partida(caminho_pgn):
+    partidas = []
+    with open(caminho_pgn, encoding="utf-8", errors="ignore") as pgn:
+        while len(partidas) < 30:
+            offset = pgn.tell()
+            headers = chess.pgn.read_headers(pgn)
+            if headers is None:
+                break
+            partidas.append((offset, headers))
+            
+    if not partidas:
+        print("Nenhuma partida valida encontrada no arquivo.")
+        sys.exit(1)
+        
+    if len(partidas) == 1:
+        with open(caminho_pgn, encoding="utf-8", errors="ignore") as pgn:
+            return chess.pgn.read_game(pgn)
+            
+    print(f"\n=== Partidas em {os.path.basename(caminho_pgn)} (Primeiras {len(partidas)}) ===")
+    for idx, (_, h) in enumerate(partidas, start=1):
+        w = h.get("White", "?")
+        b = h.get("Black", "?")
+        dt = h.get("Date", "????")[:4]
+        res = h.get("Result", "*")
+        print(f" [{idx}] {w} vs {b} ({dt}) [{res}]")
+        
+    sel = input("\nEscolha o numero da partida (Enter para a #1): ").strip()
+    indice = int(sel) - 1 if sel.isdigit() and 1 <= int(sel) <= len(partidas) else 0
+    
+    with open(caminho_pgn, encoding="utf-8", errors="ignore") as pgn:
+        pgn.seek(partidas[indice][0])
+        return chess.pgn.read_game(pgn)
 
 def obter_centipawns(score_obj):
     if score_obj.is_mate():
         return 10000 if score_obj.mate() > 0 else -10000
     return score_obj.score()
 
-engine = chess.engine.SimpleEngine.popen_uci("stockfish")
-
-with open(arquivo_pgn) as pgn:
-    jogo = chess.pgn.read_game(pgn)
-
-if not jogo:
-    print("Nenhuma partida valida encontrada no arquivo.")
-    engine.quit()
+arquivo_pgn = sys.argv[1] if len(sys.argv) >= 2 else escolher_arquivo()
+if not os.path.isfile(arquivo_pgn):
+    print(f"Arquivo nao encontrado: {arquivo_pgn}")
     sys.exit(1)
+
+jogo = escolher_partida(arquivo_pgn)
+engine = chess.engine.SimpleEngine.popen_uci("stockfish")
 
 brancas = jogo.headers.get("White", "Brancas")
 pretas = jogo.headers.get("Black", "Pretas")
@@ -275,6 +330,12 @@ for lado, nome in [("Brancas", brancas), ("Pretas", pretas)]:
 print("\n" + "=" * 40)
 EOF
 
+printf '#!/data/data/com.termux/files/usr/bin/sh\nexec python "$HOME/jogar_stockfish.py" "$@"\n' > $PREFIX/bin/sf
+chmod +x $PREFIX/bin/sf
+
+printf '#!/data/data/com.termux/files/usr/bin/sh\nexec python "$HOME/analisar_pgn.py" "$@"\n' > $PREFIX/bin/analisar
+chmod +x $PREFIX/bin/analisar
+
 echo "==========================================================="
 echo "  Instalacao em andamento, aguarde e anote alguns comandos!"
 echo "==========================================================="
@@ -294,7 +355,7 @@ echo " - img                   -> Exibe a imagem no terminal usando o Chafa"
 echo " - pixterm -s 2          -> Exibe a imagem em blocos coloridos com o Pixterm"
 echo " - xadrez                -> Inicia GNU Chess com livro de aberturas"
 echo " - sf                    -> Inicia Stockfish interativo (Elo, dicas e PGN)"
-echo " - analisar <arquivo>    -> Analisa partidas .pgn e gera relatorio de blunders"
+echo " - analisar              -> Menu interativo para analisar partidas .pgn e blunders"
 echo " - stockfish             -> Abre o motor UCI Stockfish puro"
 echo " - atualizar             -> Atualiza pacotes Termux (pkg update && pkg upgrade -y)"
 echo " - mint                  -> Acesso HOST remoto - (ssh usuario@ip)"
