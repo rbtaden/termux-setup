@@ -46,9 +46,11 @@ pkg install -y gnuchess stockfish python
 pip install --quiet chess
 
 mkdir -p "$HOME/.gnuchess"
-wget -q --show-progress -O "$HOME/.gnuchess/gm.pgn" https://pgnmentor.com
+curl -fsSL "https://www.pgnmentor.com/players/Kasparov.zip" -o "$HOME/.gnuchess/gm.zip"
+unzip -p "$HOME/.gnuchess/gm.zip" > "$HOME/.gnuchess/gm.pgn"
+rm -f "$HOME/.gnuchess/gm.zip"
 
-printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -f gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess\n' > $PREFIX/bin/xadrez
+printf '#!/data/data/com.termux/files/usr/bin/sh\ncd "$HOME/.gnuchess"\nif [ ! -f book.dat ] && [ -s gm.pgn ]; then\n  printf "book add gm.pgn\\nquit\\n" | gnuchess >/dev/null 2>&1\nfi\necho "=== GNU Chess Pronto ==="\necho "Comandos: e4 (jogar) | show board (tabuleiro) | hint (dica) | quit (sair)"\nexec gnuchess\n' > $PREFIX/bin/xadrez
 chmod +x $PREFIX/bin/xadrez
 
 cat << 'EOF' > ~/jogar_stockfish.py
