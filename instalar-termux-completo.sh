@@ -168,7 +168,7 @@ cat << 'EOF' > ~/estudos_pgn/capablanca.pgn
 1. e4 e5 2. Nf3 Nc6 3. Bc4 d6 4. Nc3 Bg4 5. Nxe5 Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0
 EOF
 
-# Criar script de analise lance a lance com Stockfish
+# Criar script de analise lance a lance e relatorio de blunders com Stockfish
 cat << 'EOF' > ~/analisar_pgn.py
 import sys
 import os
@@ -186,6 +186,11 @@ if not os.path.isfile(arquivo_pgn):
     print(f"Arquivo nao encontrado: {arquivo_pgn}")
     sys.exit(1)
 
+def obter_centipawns(score_obj):
+    if score_obj.is_mate():
+        return 10000 if score_obj.mate() > 0 else -10000
+    return score_obj.score()
+
 engine = chess.engine.SimpleEngine.popen_uci("stockfish")
 
 with open(arquivo_pgn) as pgn:
@@ -196,41 +201,78 @@ if not jogo:
     engine.quit()
     sys.exit(1)
 
+brancas = jogo.headers.get("White", "Brancas")
+pretas = jogo.headers.get("Black", "Pretas")
+
 print("\n=== Analise Stockfish ===")
-print(f"Partida: {jogo.headers.get('White', '?')} vs {jogo.headers.get('Black', '?')}")
+print(f"Partida: {brancas} vs {pretas}")
 print(f"Resultado: {jogo.headers.get('Result', '*')}\n")
+
+stats = {
+    "Brancas": {"lances": 0, "imprecisoes": 0, "erros": 0, "blunders": 0},
+    "Pretas": {"lances": 0, "imprecisoes": 0, "erros": 0, "blunders": 0}
+}
 
 tabuleiro = jogo.board()
 
 for numero_lance, lance in enumerate(jogo.mainline_moves(), start=1):
     turno = (numero_lance + 1) // 2
-    cor = "Brancas" if tabuleiro.turn == chess.WHITE else "Pretas"
+    vez_brancas = (tabuleiro.turn == chess.WHITE)
+    cor = "Brancas" if vez_brancas else "Pretas"
     lance_san = tabuleiro.san(lance)
     
     info_antes = engine.analyse(tabuleiro, chess.engine.Limit(time=0.2))
     melhor_lance = tabuleiro.san(info_antes["pv"][0]) if "pv" in info_antes and len(info_antes["pv"]) > 0 else "-"
+    cp_antes = obter_centipawns(info_antes["score"].pov(tabuleiro.turn))
     
     tabuleiro.push(lance)
     
     info_depois = engine.analyse(tabuleiro, chess.engine.Limit(time=0.2))
-    score = info_depois["score"].white()
+    score_white = info_depois["score"].white()
+    cp_depois = obter_centipawns(info_depois["score"].pov(not tabuleiro.turn))
     
-    if score.is_mate():
-        avaliacao = f"Mate em {score.mate()}"
-    else:
-        avaliacao = f"{score.score() / 100:+.2f}"
+    perda = max(0, cp_antes - cp_depois)
+    stats[cor]["lances"] += 1
+    tag = ""
+    
+    if lance_san != melhor_lance:
+        if perda >= 200:
+            stats[cor]["blunders"] += 1
+            tag = " [?? Erro Grave / Blunder]"
+        elif perda >= 100:
+            stats[cor]["erros"] += 1
+            tag = " [? Erro]"
+        elif perda >= 50:
+            stats[cor]["imprecisoes"] += 1
+            tag = " [?! Imprecisao]"
 
-    print("=" * 35)
-    print(f"Lance {turno} ({cor}): {lance_san}")
+    if score_white.is_mate():
+        avaliacao = f"Mate em {score_white.mate()}"
+    else:
+        avaliacao = f"{score_white.score() / 100:+.2f}"
+
+    print("=" * 40)
+    print(f"Lance {turno} ({cor}): {lance_san}{tag}")
     print(f"Melhor lance seria: {melhor_lance} | Avaliacao: {avaliacao}")
     print(tabuleiro.unicode(invert_color=True, borders=True, empty_square=" "))
     
-    resp = input("\n[Enter] Proximo lance | [q] Sair: ").strip().lower()
+    resp = input("\n[Enter] Proximo lance | [q] Sair e ver relatorio: ").strip().lower()
     if resp == "q":
         break
 
 engine.quit()
-print("\nAnalise encerrada.")
+
+print("\n" + "=" * 40)
+print("      RELATORIO FINAL DA PARTIDA")
+print("=" * 40)
+for lado, nome in [("Brancas", brancas), ("Pretas", pretas)]:
+    s = stats[lado]
+    print(f"\n{lado} ({nome}):")
+    print(f" - Lances analisados : {s['lances']}")
+    print(f" - Imprecisoes (?!)  : {s['imprecisoes']}")
+    print(f" - Erros (?)         : {s['erros']}")
+    print(f" - Blunders (??)     : {s['blunders']}")
+print("\n" + "=" * 40)
 EOF
 
 echo "==========================================================="
@@ -252,7 +294,7 @@ echo " - img                   -> Exibe a imagem no terminal usando o Chafa"
 echo " - pixterm -s 2          -> Exibe a imagem em blocos coloridos com o Pixterm"
 echo " - xadrez                -> Inicia GNU Chess com livro de aberturas"
 echo " - sf                    -> Inicia Stockfish interativo (Elo, dicas e PGN)"
-echo " - analisar <arquivo>    -> Analisa partidas .pgn lance a lance com Stockfish"
+echo " - analisar <arquivo>    -> Analisa partidas .pgn e gera relatorio de blunders"
 echo " - stockfish             -> Abre o motor UCI Stockfish puro"
 echo " - atualizar             -> Atualiza pacotes Termux (pkg update && pkg upgrade -y)"
 echo " - mint                  -> Acesso HOST remoto - (ssh usuario@ip)"
