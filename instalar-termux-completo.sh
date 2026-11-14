@@ -19,23 +19,31 @@ echo "[2/11] Atualizando sistema e repositorios..."
 yes | pkg update -y
 yes | pkg upgrade -y -o Dpkg::Options::="--force-confold"
 
-# 3. Instalar pacotes essenciais
-echo "[3/11] Instalando fastfetch, tmux, viu, chafa, yazi, openssh e golang..."
-pkg install fastfetch tmux viu chafa yazi openssh curl git golang -y
-
-# 4. Habilitar repositorio da comunidade (tur-repo)
-echo "[4/11] Habilitando repositorios extra (tur-repo & root-repo)..."
-pkg install -y tur-repo
-pkg install -y root-repo
+# 3. Habilitar repositorios da comunidade (tur-repo & root-repo)
+echo "[3/10] Habilitando repositorios extras (tur-repo & root-repo)..."
+pkg install -y tur-repo root-repo
 pkg update -y
 
-# 5. Instalar ferramentas de Rede e Diagnostico
-echo "[5/11] Instalando ferramentas de rede..."
-pkg install -y net-tools iproute2 dnsutils inetutils traceroute nmap curl wget whois netcat-openbsd tor speedtest-go tshark tcpdump iperf3 aircrack-ng
+# 4. Instalar pacotes essenciais, Rede, Diagnostico e Utilitarios Bash
+echo "[4/10] Instalando pacotes essenciais, rede e utilitarios Bash..."
 
-# 6. Instalar utilitarios Bash, Arquivos e Monitoramento
-echo "[6/11] Instalando utilitarios Bash e sistema..."
-pkg install -y coreutils findutils grep sed gawk jq tree zip unzip tar htop git nano vim file which util-linux procps termux-tools termux-api 7zip nnn eza cmatrix tsu
+PACOTES=(
+    # Essenciais
+    fastfetch tmux viu chafa yazi openssh curl git golang
+    # Rede e Diagnostico
+    net-tools iproute2 dnsutils inetutils traceroute nmap
+    wget whois netcat-openbsd tor speedtest-go tshark
+    tcpdump iperf3 aircrack-ng
+    # Utilitarios Bash, Arquivos e Monitoramento
+    coreutils findutils grep sed gawk jq tree zip unzip
+    tar htop nano vim file which util-linux procps
+    termux-tools termux-api 7zip nnn eza cmatrix tsu
+)
+
+for pacote in "${PACOTES[@]}"; do
+    echo "--> Instalando: $pacote"
+    pkg install -y "$pacote" || echo "AVISO: Falha ao instalar $pacote"
+done
 
 # 7. Criar executavel para o comando 'who' (omitido no coreutils do Android)
 echo "[7/11] Configurando comando 'who'..."
