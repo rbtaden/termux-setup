@@ -6,7 +6,9 @@ Script de instalação e personalização completa para o **Termux** no Android.
 
 ## Instalação Rápida (Novo Aparelho)
 
-Abra o **Termux** recém-instalado no Android e execute o comando único abaixo:
+Abra o **Termux** recém-instalado no Android
+<https://github.com/termux/termux-app/releases>
+e execute o comando único abaixo:
 
 ```bash
 apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://raw.githubusercontent.com/rbtaden/termux-setup/main/instalar-termux-completo.sh -o setup.sh && chmod +x setup.sh && ./setup.sh
