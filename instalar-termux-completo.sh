@@ -24,16 +24,18 @@ echo "[3/11] Instalando fastfetch, tmux, viu, chafa, yazi, openssh e golang..."
 pkg install fastfetch tmux viu chafa yazi openssh curl git golang -y
 
 # 4. Habilitar repositorio da comunidade (tur-repo)
-echo "[4/11] Habilitando repositorio extra (tur-repo)..."
+echo "[4/11] Habilitando repositorios extra (tur-repo & root-repo)..."
 pkg install -y tur-repo
+pkg install -y root-repo
+pkg update -y
 
 # 5. Instalar ferramentas de Rede e Diagnostico
 echo "[5/11] Instalando ferramentas de rede..."
-pkg install -y net-tools iproute2 dnsutils inetutils traceroute nmap curl wget whois openssh netcat-openbsd
+pkg install -y net-tools iproute2 dnsutils inetutils traceroute nmap curl wget whois netcat-openbsd tor speedtest-go tshark tcpdump iperf3 aircrack-ng
 
 # 6. Instalar utilitarios Bash, Arquivos e Monitoramento
 echo "[6/11] Instalando utilitarios Bash e sistema..."
-pkg install -y coreutils findutils grep sed gawk jq tree zip unzip tar htop tmux git nano vim file which util-linux procps termux-tools
+pkg install -y coreutils findutils grep sed gawk jq tree zip unzip tar htop git nano vim file which util-linux procps termux-tools termux-api 7zip nnn eza cmatrix tsu
 
 # 7. Criar executavel para o comando 'who' (omitido no coreutils do Android)
 echo "[7/11] Configurando comando 'who'..."
