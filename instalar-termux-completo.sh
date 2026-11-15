@@ -8,21 +8,21 @@ echo "=================================================="
 REPO_ASSETS="https://raw.githubusercontent.com/rbtaden/termux-setup/main/assets"
 
 # 1. Solicitar permissao de armazenamento
-if [ ! -d ~/storage ]; then
-    echo "[1/11] Solicitando permissao de armazenamento..."
+if [ ! -d ~/storage/shared ]; then
+    echo "[1/10] Solicitando permissao de armazenamento..."
     termux-setup-storage
     sleep 3
 fi
 
 # 2. Atualizar repositorios e pacotes sem travar em perguntas
-echo "[2/11] Atualizando sistema e repositorios..."
+echo "[2/10] Atualizando sistema e repositorios..."
 yes | pkg update -y
 yes | pkg upgrade -y -o Dpkg::Options::="--force-confold"
 
 # 3. Habilitar repositorios da comunidade (tur-repo & root-repo)
 echo "[3/10] Habilitando repositorios extras (tur-repo & root-repo)..."
-pkg install -y tur-repo root-repo
-pkg update -y
+yes | pkg install -y tur-repo root-repo
+yes | pkg update -y
 
 # 4. Instalar pacotes essenciais, Rede, Diagnostico e Utilitarios Bash
 echo "[4/10] Instalando pacotes essenciais, rede e utilitarios Bash..."
@@ -30,16 +30,17 @@ echo "[4/10] Instalando pacotes essenciais, rede e utilitarios Bash..."
 PACOTES=(
     # Essenciais
     fastfetch tmux viu chafa yazi openssh curl git golang
-    # Dependências necessárias (aircrack-ng)
-    wget libc++ libnl libpcap libsqlite openssl pcre zlib
-    # Rede e Diagnostico
-    net-tools iproute2 dnsutils inetutils traceroute nmap
-    wget whois netcat-openbsd tor speedtest-go tshark
-    tcpdump iperf3 aircrack-ng
     # Utilitarios Bash, Arquivos e Monitoramento
     coreutils findutils grep sed gawk jq tree zip unzip
     tar htop nano vim file which util-linux procps
-    termux-tools termux-api 7zip nnn eza cmatrix tsu
+    termux-tools termux-api p7zip nnn eza cmatrix tsu
+    # Dependencias reais no Termux (para Aircrack-ng e rede)
+    clang make autoconf automake pkg-config wget openssl pcre zlib
+    ethtool rfkill hostapd wpa-supplicant tcpdump screen iw usbutils expect
+    libc++ libnl libpcap libsqlite libtool
+    # Rede e Diagnostico
+    net-tools iproute2 dnsutils inetutils traceroute nmap
+    whois netcat-openbsd tor speedtest-go tshark iperf3
 )
 
 for pacote in "${PACOTES[@]}"; do
@@ -47,13 +48,43 @@ for pacote in "${PACOTES[@]}"; do
     pkg install -y "$pacote" || echo "AVISO: Falha ao instalar $pacote"
 done
 
-# 7. Criar executavel para o comando 'who' (omitido no coreutils do Android)
-echo "[7/11] Configurando comando 'who'..."
+# 5. Instalacao automatizada do Aircrack-ng 1.7 (direto da pasta assets do repositorio)
+echo "[5/10] Detectando arquitetura e instalando Aircrack-ng 1.7..."
+ARCH=$(uname -m)
+
+case "$ARCH" in
+    aarch64)
+        DEB_FILE="aircrack-ng_3_1.7_aarch64.deb"
+        ;;
+    armv7l|armv8l|arm)
+        DEB_FILE="aircrack-ng_3_1.7_arm.deb"
+        ;;
+    x86_64)
+        DEB_FILE="aircrack-ng_3_1.7_x86_64.deb"
+        ;;
+    i686)
+        DEB_FILE="aircrack-ng_3_1.7_i686.deb"
+        ;;
+    *)
+        echo "AVISO: Arquitetura $ARCH nao suportada para o aircrack-ng."
+        DEB_FILE=""
+        ;;
+esac
+
+if [ -n "$DEB_FILE" ]; then
+    echo "--> Arquitetura detectada: $ARCH ($DEB_FILE)"
+    curl -fsSL "${REPO_ASSETS}/${DEB_FILE}" -o "$TMPDIR/aircrack-ng.deb" && \
+    dpkg -i "$TMPDIR/aircrack-ng.deb" && \
+    rm -f "$TMPDIR/aircrack-ng.deb" || echo "AVISO: Falha ao instalar $DEB_FILE"
+fi
+
+# 6. Criar executavel para o comando 'who' (omitido no coreutils do Android)
+echo "[6/10] Configurando comando 'who'..."
 printf '#!/data/data/com.termux/files/usr/bin/sh\necho "$(whoami) pts/0 $(date "+%%Y-%%m-%%d %%H:%%M")"\n' > $PREFIX/bin/who
 chmod +x $PREFIX/bin/who
 
-# 8. Instalar GNU Chess, Stockfish, Python-Chess e configurar atalhos e estudos PGN
-echo "[8/11] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez', 'sf' e 'analisar'..."
+# 7. Instalar GNU Chess, Stockfish, Python-Chess e configurar atalhos e estudos PGN
+echo "[7/10] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez', 'sf' e 'analisar'..."
 pkg install -y gnuchess stockfish python
 pip install --quiet chess
 
@@ -377,8 +408,8 @@ echo " Ctrl + a seguido de |   -> Divide o painel verticalmente (lado a lado)"
 echo " Ctrl + a seguido de -   -> Divide o painel horizontalmente (em cima e embaixo)"
 echo " Ctrl + a seguido de r   -> Recarrega as configuracoes do ~/.tmux.conf"
 
-# 9. Baixar e compilar o Pixterm a partir da pasta assets do seu repositorio
-echo "[9/11] Compilando o Pixterm..."
+# 8. Baixar e compilar o Pixterm a partir da pasta assets do seu repositorio
+echo "[8/10] Compilando o Pixterm..."
 rm -rf ~/pixterm ~/pixterm.tar
 curl -fsSL "${REPO_ASSETS}/pixterm.tar" -o ~/pixterm.tar
 tar -xf ~/pixterm.tar -C ~
@@ -389,14 +420,14 @@ cp ~/go/bin/pixterm "$PREFIX/bin/"
 cd ~ || exit
 rm -rf ~/pixterm
 
-# 10. Configurar tema Dracula e JetBrainsMono Nerd Font a partir da pasta assets
-echo "[10/11] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
+# 9. Configurar tema Dracula e JetBrainsMono Nerd Font a partir da pasta assets
+echo "[9/10] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
 mkdir -p ~/.termux
 curl -fsSL "${REPO_ASSETS}/colors.properties" -o ~/.termux/colors.properties
 curl -fsSL "${REPO_ASSETS}/JetBrainsMonoNerdFontMono-Regular.ttf" -o ~/.termux/font.ttf
 
-# 11. Configurar Tmux, aliases e funcao layout
-echo "[11/11] Configurando Tmux, atalhos e layout..."
+# 10. Configurar Tmux, aliases e funcao layout
+echo "[10/10] Configurando Tmux, atalhos e layout..."
 touch ~/.hushlogin
 
 cat << 'EOF' > ~/.tmux.conf
