@@ -30,6 +30,8 @@ echo "[4/10] Instalando pacotes essenciais, rede e utilitarios Bash..."
 PACOTES=(
     # Essenciais
     fastfetch tmux viu chafa yazi openssh curl git golang
+    # Dependências necessárias (aircrack-ng)
+    wget libc++ libnl libpcap libsqlite openssl pcre zlib
     # Rede e Diagnostico
     net-tools iproute2 dnsutils inetutils traceroute nmap
     wget whois netcat-openbsd tor speedtest-go tshark
@@ -370,6 +372,7 @@ echo " - stockfish             -> Abre o motor UCI Stockfish puro"
 echo " - atualizar             -> Atualiza pacotes Termux (pkg update && pkg upgrade -y)"
 echo " - mint                  -> Acesso HOST remoto - (ssh usuario@ip)"
 echo " - puxar                 -> Copia arquivos ou pastas do PC para o Android via scp"
+echo " - enviar                -> Copia arquivos ou pastas do Android para o PC via scp"
 echo " Ctrl + a seguido de |   -> Divide o painel verticalmente (lado a lado)"
 echo " Ctrl + a seguido de -   -> Divide o painel horizontalmente (em cima e embaixo)"
 echo " Ctrl + a seguido de r   -> Recarrega as configuracoes do ~/.tmux.conf"
@@ -445,17 +448,33 @@ echo "--------------------------------------------------"
 echo " Configuracao Opcional: Acesso Remoto SSH (PC)"
 echo " (Pressione Enter em branco para pular esta etapa)"
 echo "--------------------------------------------------"
-read -rp "Digite o usuario do PC (ex: joao): " SSH_USER
-read -rp "Digite o IP Tailscale do PC (ex: 100.x.x.x): " SSH_IP
+read -rp "Digite o usuario do PC (ex: tux): " SSH_USER
+read -rp "Digite o IP ou nome MagicDNS do PC (ex: 100.x.x.x ou linux-mint): " SSH_IP
 
 if [ -n "$SSH_USER" ] && [ -n "$SSH_IP" ]; then
+  # Remove configuracao anterior, caso o script seja executado novamente
+  sed -i '/# --- INICIO TAILSCALE SSH ---/,/# --- FIM TAILSCALE SSH ---/d' ~/.bashrc
+
   cat << EOF >> ~/.bashrc
 
-# Acesso rapido ao PC via Tailscale SSH
+# --- INICIO TAILSCALE SSH ---
 alias mint='ssh ${SSH_USER}@${SSH_IP}'
-alias puxar='scp -r ${SSH_USER}@${SSH_IP}:~/'
+
+puxar() {
+  scp -r "${SSH_USER}@${SSH_IP}:\$1" "\${2:-.}"
+}
+
+enviar() {
+  scp -r "\$1" "${SSH_USER}@${SSH_IP}:\${2:-~/}"
+}
+# --- FIM TAILSCALE SSH ---
 EOF
-  echo "Atalhos 'mint' e 'puxar' configurados para ${SSH_USER}@${SSH_IP}!"
+
+  echo "Atalhos 'mint', 'puxar' e 'enviar' configurados para ${SSH_USER}@${SSH_IP}!"
+  echo "Exemplos de uso (apos reiniciar o terminal ou rodar 'source ~/.bashrc'):"
+  echo "  mint"
+  echo "  puxar <caminho_remoto> [destino_local]"
+  echo "  enviar <caminho_local> [destino_remoto]"
 else
   echo "Configuracao SSH ignorada."
 fi
