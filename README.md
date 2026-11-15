@@ -69,6 +69,7 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 | :--- | :--- |
 | `mint` | Conecta-se remotamente ao terminal do PC via SSH (`ssh usuario@ip`). |
 | `puxar <caminho>` | Copia arquivos ou pastas da pasta pessoal do PC para o diretório atual no Android via SCP. |
+| `enviar <caminho>`| Copia arquivos ou pastas da pasta pessoal do diretório atual no Android  para o PC via SCP.|
 
 ---
 
