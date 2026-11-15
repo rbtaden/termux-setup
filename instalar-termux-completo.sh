@@ -9,27 +9,27 @@ REPO_ASSETS="https://raw.githubusercontent.com/rbtaden/termux-setup/main/assets"
 
 # 1. Solicitar permissao de armazenamento
 if [ ! -d ~/storage/shared ]; then
-    echo "[1/10] Solicitando permissao de armazenamento..."
+    echo "[1/11] Solicitando permissao de armazenamento..."
     termux-setup-storage
     sleep 3
 fi
 
 # 2. Atualizar repositorios e pacotes sem travar em perguntas
-echo "[2/10] Atualizando sistema e repositorios..."
+echo "[2/11] Atualizando sistema e repositorios..."
 yes | pkg update -y
 yes | pkg upgrade -y -o Dpkg::Options::="--force-confold"
 
 # 3. Habilitar repositorios da comunidade (tur-repo & root-repo)
-echo "[3/10] Habilitando repositorios extras (tur-repo & root-repo)..."
+echo "[3/11] Habilitando repositorios extras (tur-repo & root-repo)..."
 yes | pkg install -y tur-repo root-repo
 yes | pkg update -y
 
 # 4. Instalar pacotes essenciais, Rede, Diagnostico e Utilitarios Bash
-echo "[4/10] Instalando pacotes essenciais, rede e utilitarios Bash..."
+echo "[4/11] Instalando pacotes essenciais, rede e utilitarios Bash..."
 
 PACOTES=(
-    # Essenciais
-    fastfetch tmux viu chafa yazi openssh curl git golang
+    # Essenciais e Leitor RSS
+    fastfetch tmux viu chafa yazi openssh curl git golang newsboat
     # Utilitarios Bash, Arquivos e Monitoramento
     coreutils findutils grep sed gawk jq tree zip unzip
     tar htop nano vim file which util-linux procps
@@ -49,7 +49,7 @@ for pacote in "${PACOTES[@]}"; do
 done
 
 # 5. Instalacao automatizada do Aircrack-ng 1.7 (direto da pasta assets do repositorio)
-echo "[5/10] Detectando arquitetura e instalando Aircrack-ng 1.7..."
+echo "[5/11] Detectando arquitetura e instalando Aircrack-ng 1.7..."
 ARCH=$(uname -m)
 
 case "$ARCH" in
@@ -79,12 +79,12 @@ if [ -n "$DEB_FILE" ]; then
 fi
 
 # 6. Criar executavel para o comando 'who' (omitido no coreutils do Android)
-echo "[6/10] Configurando comando 'who'..."
+echo "[6/11] Configurando comando 'who'..."
 printf '#!/data/data/com.termux/files/usr/bin/sh\necho "$(whoami) pts/0 $(date "+%%Y-%%m-%%d %%H:%%M")"\n' > $PREFIX/bin/who
 chmod +x $PREFIX/bin/who
 
 # 7. Instalar GNU Chess, Stockfish, Python-Chess e configurar atalhos e estudos PGN
-echo "[7/10] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez', 'sf' e 'analisar'..."
+echo "[7/11] Instalando GNU Chess, Stockfish e configurando comandos 'xadrez', 'sf' e 'analisar'..."
 pkg install -y gnuchess stockfish python
 pip install --quiet chess
 
@@ -214,7 +214,6 @@ cat << 'EOF' > ~/estudos_pgn/capablanca.pgn
 1. e4 e5 2. Nf3 Nc6 3. Bc4 d6 4. Nc3 Bg4 5. Nxe5 Bxd1 6. Bxf7+ Ke7 7. Nd5# 1-0
 EOF
 
-# Criar script de analise interativa com menu de arquivos, selecao de partidas e relatorio de blunders
 cat << 'EOF' > ~/analisar_pgn.py
 import sys
 import os
@@ -379,6 +378,110 @@ chmod +x $PREFIX/bin/sf
 printf '#!/data/data/com.termux/files/usr/bin/sh\nexec python "$HOME/analisar_pgn.py" "$@"\n' > $PREFIX/bin/analisar
 chmod +x $PREFIX/bin/analisar
 
+# 8. Configurar Leitor RSS (Newsboat) e Descanso de Tela Phosphor Ambar
+echo "[8/11] Configurando Newsboat e descanso de tela Phosphor Ambar..."
+pip install --quiet feedparser
+
+mkdir -p ~/.newsboat
+if ! grep -q "g1.globo.com/dynamo/rss2.xml" ~/.newsboat/urls 2>/dev/null; then
+    echo 'https://g1.globo.com/dynamo/rss2.xml "~G1 - Últimas Notícias"' >> ~/.newsboat/urls
+fi
+
+cat << 'EOF' > ~/phosphor_rss.py
+import os
+import re
+import sys
+import time
+import select
+import termios
+import tty
+import urllib.request
+import feedparser
+
+# Adicione quantos feeds RSS desejar na lista abaixo
+FEEDS = [
+    "https://g1.globo.com/dynamo/rss2.xml",
+]
+
+# Cores ANSI para simular monitor de fosforo ambar (paleta 256 cores)
+AMBAR_BRILHANTE = "\033[1;38;5;214m"
+AMBAR_ESCURO = "\033[38;5;172m"
+LIMPAR_TELA = "\033[2J\033[H"
+ESCONDER_CURSOR = "\033[?25l"
+MOSTRAR_CURSOR = "\033[?25h"
+
+def limpar_html(texto):
+    texto_limpo = re.sub(r'<[^<]+?>', '', texto)
+    return " ".join(texto_limpo.split())
+
+def tecla_pressionada():
+    return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
+
+def escrever_lento(texto, velocidade=0.02):
+    for char in texto:
+        if tecla_pressionada():
+            return False
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        time.sleep(velocidade)
+    return True
+
+def buscar_noticias():
+    noticias = []
+    req_headers = {'User-Agent': 'Mozilla/5.0'}
+    for url in FEEDS:
+        try:
+            req = urllib.request.Request(url, headers=req_headers)
+            xml_data = urllib.request.urlopen(req, timeout=10).read()
+            feed = feedparser.parse(xml_data)
+            for entry in feed.entries[:15]:
+                titulo = limpar_html(entry.get("title", ""))
+                resumo = limpar_html(entry.get("description", ""))
+                noticias.append((titulo, resumo))
+        except Exception:
+            pass
+    return noticias
+
+def main():
+    fd = sys.stdin.fileno()
+    config_antiga = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(fd)
+        sys.stdout.write(ESCONDER_CURSOR + LIMPAR_TELA)
+        
+        while True:
+            sys.stdout.write(f"{AMBAR_BRILHANTE}>>> SINCRONIZANDO TERMINAL DE NOTICIAS...\n\n")
+            noticias = buscar_noticias()
+            
+            if not noticias:
+                if not escrever_lento("SEM CONEXAO. TENTANDO NOVAMENTE...\n", 0.04):
+                    break
+                time.sleep(5)
+                continue
+
+            for titulo, resumo in noticias:
+                sys.stdout.write(LIMPAR_TELA)
+                if not escrever_lento(f"{AMBAR_BRILHANTE}[MANCHETE] {titulo.upper()}\n\n", 0.025):
+                    return
+                if not escrever_lento(f"{AMBAR_ESCURO}{resumo}\n\n", 0.015):
+                    return
+                if not escrever_lento(f"{AMBAR_BRILHANTE}_", 0.05):
+                    return
+                
+                # Pausa de 4 segundos para leitura antes da proxima noticia
+                for _ in range(40):
+                    if tecla_pressionada():
+                        return
+                    time.sleep(0.1)
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, config_antiga)
+        sys.stdout.write(MOSTRAR_CURSOR + "\033[0m" + LIMPAR_TELA)
+
+if __name__ == "__main__":
+    main()
+EOF
+chmod +x ~/phosphor_rss.py
+
 echo "==========================================================="
 echo "  Instalacao em andamento, aguarde e anote alguns comandos!"
 echo "==========================================================="
@@ -391,6 +494,8 @@ echo " - layout                -> Interface customizada: Yazi, Fastfetch e Termi
 echo " - painel                -> Interface customizada: 2 paineis"
 echo " - info                  -> Executa o Fastfetch manualmente"
 echo " - arquivos              -> Abre o gerenciador de arquivos Yazi"
+echo " - noticias              -> Abre o leitor de feeds RSS (Newsboat)"
+echo " - descanso              -> Inicia o descanso de tela Phosphor Ambar"
 echo " - downloads             -> Acessa /sdcard/Download e lista os arquivos"
 echo " - fotos                 -> Acessa /sdcard/Pictures e lista os arquivos"
 echo " - foto                  -> Exibe a imagem no terminal usando o Viu"
@@ -408,8 +513,8 @@ echo " Ctrl + a seguido de |   -> Divide o painel verticalmente (lado a lado)"
 echo " Ctrl + a seguido de -   -> Divide o painel horizontalmente (em cima e embaixo)"
 echo " Ctrl + a seguido de r   -> Recarrega as configuracoes do ~/.tmux.conf"
 
-# 8. Baixar e compilar o Pixterm a partir da pasta assets do seu repositorio
-echo "[8/10] Compilando o Pixterm..."
+# 9. Baixar e compilar o Pixterm a partir da pasta assets do seu repositorio
+echo "[9/11] Compilando o Pixterm..."
 rm -rf ~/pixterm ~/pixterm.tar
 curl -fsSL "${REPO_ASSETS}/pixterm.tar" -o ~/pixterm.tar
 tar -xf ~/pixterm.tar -C ~
@@ -420,14 +525,14 @@ cp ~/go/bin/pixterm "$PREFIX/bin/"
 cd ~ || exit
 rm -rf ~/pixterm
 
-# 9. Configurar tema Dracula e JetBrainsMono Nerd Font a partir da pasta assets
-echo "[9/10] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
+# 10. Configurar tema Dracula e JetBrainsMono Nerd Font a partir da pasta assets
+echo "[10/11] Aplicando tema Dracula e JetBrainsMono Nerd Font..."
 mkdir -p ~/.termux
 curl -fsSL "${REPO_ASSETS}/colors.properties" -o ~/.termux/colors.properties
 curl -fsSL "${REPO_ASSETS}/JetBrainsMonoNerdFontMono-Regular.ttf" -o ~/.termux/font.ttf
 
-# 10. Configurar Tmux, aliases e funcao layout
-echo "[10/10] Configurando Tmux, atalhos e layout..."
+# 11. Configurar Tmux, descanso de tela automatico, aliases e funcao layout
+echo "[11/11] Configurando Tmux, atalhos e layout..."
 touch ~/.hushlogin
 
 cat << 'EOF' > ~/.tmux.conf
@@ -444,9 +549,18 @@ set -g default-terminal "screen-256color"
 set -g status-style "bg=#282a36,fg=#f8f8f2"
 set -g status-left "#[fg=#50fa7b,bold] [Termux] "
 set -g status-right "#[fg=#bd93f9]%H:%M "
+
+# Descanso de tela Phosphor Ambar apos 60 segundos de inatividade
+set -g lock-after-time 60
+set -g lock-command "python ~/phosphor_rss.py"
 EOF
 
 cat << 'EOF' > ~/.bashrc
+# Iniciar automaticamente dentro do tmux (necessario para o descanso de tela por inatividade)
+if [ -z "$TMUX" ] && [[ $- == *i* ]]; then
+  tmux attach || tmux new
+fi
+
 # Iniciar Fastfetch ao abrir
 fastfetch
 
@@ -455,6 +569,8 @@ alias c='clear'
 alias atualizar='pkg update && pkg upgrade -y'
 alias info='fastfetch'
 alias arquivos='yazi'
+alias noticias='newsboat'
+alias descanso='python ~/phosphor_rss.py'
 alias foto='viu'
 alias img='chafa'
 alias downloads='cd /sdcard/Download && ls -la'
@@ -465,11 +581,18 @@ alias analisar='python ~/analisar_pgn.py'
 
 # Layout completo (Yazi no topo, Fastfetch embaixo-esquerda, Terminal limpo embaixo-direita)
 layout() {
-  tmux new-session -d -s vitrine 'yazi'
-  tmux split-window -v -t vitrine 'fastfetch --logo small; bash'
-  tmux split-window -h -t vitrine.1 'cd /sdcard/Download && clear && bash'
-  tmux select-pane -t vitrine.2
-  tmux attach-session -t vitrine
+  if [ -n "$TMUX" ]; then
+    tmux split-window -v 'fastfetch --logo small; bash'
+    tmux split-window -h 'cd /sdcard/Download && clear && bash'
+    tmux select-pane -U
+    yazi
+  else
+    tmux new-session -d -s vitrine 'yazi'
+    tmux split-window -v -t vitrine 'fastfetch --logo small; bash'
+    tmux split-window -h -t vitrine.1 'cd /sdcard/Download && clear && bash'
+    tmux select-pane -t vitrine.2
+    tmux attach-session -t vitrine
+  fi
 }
 EOF
 
@@ -511,7 +634,6 @@ else
 fi
 
 termux-reload-settings
-source ~/.bashrc
 
 echo "=================================================="
 echo " Instalacao concluida! Reinicie o Termux (exit).  "
