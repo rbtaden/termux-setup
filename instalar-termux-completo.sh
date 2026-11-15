@@ -36,7 +36,7 @@ PACOTES=(
     termux-tools termux-api p7zip nnn eza cmatrix tsu
     # Dependencias reais no Termux (para Aircrack-ng e rede)
     clang make autoconf automake pkg-config wget openssl pcre zlib
-    ethtool rfkill hostapd wpa-supplicant tcpdump screen iw usbutils expect
+    ethtool wpa-supplicant tcpdump screen iw usbutils expect
     libc++ libnl libpcap libsqlite libtool
     # Rede e Diagnostico
     net-tools iproute2 dnsutils inetutils traceroute nmap
