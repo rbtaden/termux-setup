@@ -1,17 +1,15 @@
-# Termux Setup Automatizado & Tools & Chess analitico (♔ ♕ ♖ ♗ ♘ ♙)
+# Termux Setup Automatizado & Tools & Chess Analítico & RSS (♔ ♕ ♖ ♗ ♘ ♙)
 
-Script de instalação e personalização completa para o **Termux** no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal, motores de xadrez interativos com biblioteca de Grandes Mestres, análise PGN e atalhos para acesso remoto via Tailscale SSH, utilizando dependências próprias armazenadas na pasta `assets/` deste repositório.
+Script de instalação e personalização completa para o **Termux** no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal, leitor de feeds RSS com descanso de tela estilo monitor de fósforo âmbar, motores de xadrez interativos com biblioteca de Grandes Mestres, análise PGN e atalhos para acesso remoto via Tailscale SSH, utilizando dependências próprias armazenadas na pasta `assets/` deste repositório.
 
 ---
 
 ## Instalação Rápida (Novo Aparelho)
 
-Abra o **Termux** recém-instalado no Android
-<https://github.com/termux/termux-app/releases>
-e execute o comando único abaixo:
+Abra o **Termux** recém-instalado no Android (<https://github.com/termux/termux-app/releases>) e execute o comando único abaixo:
 
 ```bash
-apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://raw.githubusercontent.com/rbtaden/termux-setup/main/instalar-termux-completo.sh -o setup.sh && chmod +x setup.sh && ./setup.sh
+apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://raw.githubusercontent.com/rbtaden/termux-setup/main/instalar-termux-completo-rss.sh -o setup.sh && chmod +x setup.sh && ./setup.sh
 ```
 
 ### Durante a instalação
@@ -27,19 +25,22 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 * **Informações do Sistema:** **Fastfetch** configurado para iniciar automaticamente ao abrir o terminal (`~/.bashrc`) e mensagem padrão ocultada (`~/.hushlogin`).
 * **Gerenciador de Arquivos:** **Yazi** para navegação visual com ícones e pré-visualização.
 * **Visualizadores de Imagem no Terminal:** **Pixterm** (extraído de `assets/pixterm.tar` e compilado automaticamente via Go), **Viu** e **Chafa**.
-* **Multiplexador de Terminal:** **Tmux** pré-configurado (`~/.tmux.conf`) com suporte a toque na tela (`mouse on`) e prefixo alterado para `Ctrl + a`.
+* **Multiplexador de Terminal:** **Tmux** pré-configurado (`~/.tmux.conf`) com abertura automática ao iniciar o Termux, suporte a toque na tela (`mouse on`), prefixo alterado para `Ctrl + a` e bloqueio automático por inatividade.
+* **Leitor RSS e Descanso de Tela Retrô:**
+  * **Newsboat (`noticias`):** Leitor leve de feeds RSS no terminal pré-configurado com o feed de notícias em `~/.newsboat/urls`.
+  * **Descanso de Tela Phosphor Âmbar (`descanso`):** Script em Python (`~/phosphor_rss.py`) utilizando `feedparser` e códigos ANSI de 256 cores que exibe manchetes e resumos em tom âmbar retrô. Configurado no `~/.tmux.conf` para iniciar automaticamente após **60 segundos** de inatividade (basta pressionar qualquer tecla para voltar ao terminal).
 * **Xadrez, Biblioteca de Grandes Mestres e Análise PGN:**
   * **GNU Chess (`xadrez`):** Configurado com livro de aberturas compilado localmente a partir do acervo `Kasparov.pgn` (extraído de `assets/Kasparov.zip`), filtro de limpeza de avisos internos (`Bad address`) e suporte ao comando `go` para iniciar com as peças pretas.
   * **Stockfish Interativo (`sf`):** Interface em Python (`~/jogar_stockfish.py`) registrada como executável nativo em `$PREFIX/bin/sf`, com tabuleiro visual limpo, escolha de nível Elo (1320 a 3190), escolha de cor, dicas (`hint`), desfazer jogadas (`undo`) e exportação automática de partidas em `.pgn` direto para a pasta `Downloads`.
   * **Analisador Interativo de Partidas (`analisar`):** Script em Python (`~/analisar_pgn.py`) registrado em `$PREFIX/bin/analisar` que oferece um **menu interativo** para listar arquivos `.pgn` de `~/estudos_pgn/` e `Downloads`, selecionar qualquer partida dentro das coleções de Grandes Mestres (primeiras 30 partidas por arquivo), avaliar lance a lance com o Stockfish e gerar um **relatório final** com contagem de imprecisões (`?!`), erros (`?`) e erros graves (*blunders* `??`).
   * **Biblioteca de Estudos (`~/estudos_pgn/`):** Inclui tanto partidas clássicas individuais (`opera.pgn` de Paul Morphy, `pastor.pgn` e `capablanca.pgn`) quanto as **6 coleções completas** baixadas e extraídas diretamente da pasta `assets/` deste repositório: `Alekhine.pgn`, `Capablanca.pgn`, `Carlsen.pgn`, `Fischer.pgn`, `Kasparov.pgn` e `Tal.pgn`.
-* **Ferramentas de Rede e Sistema:** Pacotes essenciais como `nmap`, `traceroute`, `whois`, `netcat-openbsd`, `htop`, `tree`, `jq` e `tur-repo`.
+* **Ferramentas de Rede e Sistema:** Pacotes essenciais como `nmap`, `traceroute`, `whois`, `netcat-openbsd`, `htop`, `tree`, `jq`, `tur-repo` e `aircrack-ng` 1.7 (instalado automaticamente conforme a arquitetura do aparelho).
 
 ---
 
 ## Atalhos e Comandos Disponíveis
 
-### Visualização, Sistema e Jogos
+### Visualização, Sistema, RSS e Jogos
 
 | Comando | Função |
 | :--- | :--- |
@@ -51,6 +52,8 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 | `painel` | Inicia o **Tmux** dividido rapidamente em 2 painéis lado a lado. |
 | `info` | Executa o **Fastfetch** manualmente. |
 | `arquivos` | Abre o gerenciador de arquivos visual **Yazi**. |
+| `noticias` | Abre o leitor de feeds RSS **Newsboat**. |
+| `descanso` | Inicia manualmente o descanso de tela **Phosphor Âmbar** com notícias RSS (também ativa sozinho após 60s de ociosidade). |
 | `downloads` | Acessa `/sdcard/Download` e lista os arquivos. |
 | `fotos` | Acessa `/sdcard/Pictures` e lista os arquivos. |
 | `foto <imagem>` | Exibe a imagem no terminal usando o **Viu**. |
@@ -68,8 +71,8 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 | Comando | Função |
 | :--- | :--- |
 | `mint` | Conecta-se remotamente ao terminal do PC via SSH (`ssh usuario@ip`). |
-| `puxar <caminho>` | Copia arquivos ou pastas da pasta pessoal do PC para o diretório atual no Android via SCP. |
-| `enviar <caminho>`| Copia arquivos ou pastas da pasta pessoal do diretório atual no Android  para o PC via SCP.|
+| `puxar <caminho_remoto> [destino_local]` | Copia arquivos ou pastas do PC para o Android via SCP. |
+| `enviar <caminho_local> [destino_remoto]` | Copia arquivos ou pastas do Android para o PC via SCP. |
 
 ---
 
