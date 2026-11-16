@@ -417,7 +417,7 @@ def limpar_html(texto):
 def tecla_pressionada():
     return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
 
-def escrever_lento(texto, velocidade=0.02):
+def escrever_lento(texto, velocidade=0.05):
     for char in texto:
         if tecla_pressionada():
             return False
@@ -468,8 +468,8 @@ def main():
                 if not escrever_lento(f"{AMBAR_BRILHANTE}_", 0.05):
                     return
                 
-                # Pausa de 4 segundos para leitura antes da proxima noticia
-                for _ in range(40):
+                # Pausa de 30 segundos para leitura antes da proxima noticia
+                for _ in range(300):
                     if tecla_pressionada():
                         return
                     time.sleep(0.1)
