@@ -31,8 +31,8 @@ if [ "$MODO" = "0" ]; then
 fi
 
 echo ""
-read -rp "Digite o usuario do host remoto (ex: taden): " SSH_USER
-read -rp "Digite o IP Tailscale ou MagicDNS (ex: 100.106.98.88 ou rbtaden): " SSH_IP
+read -rp "Digite o usuario do host remoto (ex: tux): " SSH_USER
+read -rp "Digite o IP Tailscale ou MagicDNS (ex: 100.x.x.x ou remote): " SSH_IP
 
 if [ -z "$SSH_USER" ] || [ -z "$SSH_IP" ]; then
     echo "[ERRO] Usuario e IP/MagicDNS sao obrigatorios."
@@ -68,9 +68,9 @@ ORIGEM="/sdcard/Download"
 DESTINO_HOST="${SSH_ALIAS}"
 DESTINO_PASTA="~/Downloads/ANDROID_Backup"
 
-echo "=========================================="
+echo "====================================================="
 echo " Iniciando transferencia: ANDROID -> \${DESTINO_HOST}"
-echo "=========================================="
+echo "====================================================="
 
 if [ ! -d "\$ORIGEM" ]; then
     echo "[ERRO] Pasta \$ORIGEM nao encontrada. Rode 'termux-setup-storage'."
