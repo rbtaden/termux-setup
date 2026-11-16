@@ -4,8 +4,9 @@ echo "=================================================="
 echo "   Instalacao Customizada Automatizada - Termux   "
 echo "=================================================="
 
-# URL base dos arquivos salvos no seu repositorio (pasta assets)
-REPO_ASSETS="https://raw.githubusercontent.com/rbtaden/termux-setup/main/assets"
+# URLs base do seu repositorio
+REPO_BASE="https://raw.githubusercontent.com/rbtaden/termux-setup/main"
+REPO_ASSETS="${REPO_BASE}/assets"
 
 # 1. Solicitar permissao de armazenamento
 if [ ! -d ~/storage/shared ]; then
@@ -29,7 +30,7 @@ echo "[4/11] Instalando pacotes essenciais, rede e utilitarios Bash..."
 
 PACOTES=(
     # Essenciais e Leitor RSS
-    fastfetch tmux viu chafa yazi openssh curl git golang newsboat
+    fastfetch tmux viu chafa yazi openssh rsync curl git golang newsboat
     # Utilitarios Bash, Arquivos e Monitoramento
     coreutils findutils grep sed gawk jq tree zip unzip
     tar htop nano vim file which util-linux procps
@@ -506,9 +507,13 @@ echo " - sf                    -> Inicia Stockfish interativo (Elo, dicas e PGN)
 echo " - analisar              -> Menu interativo para analisar partidas .pgn e blunders"
 echo " - stockfish             -> Abre o motor UCI Stockfish puro"
 echo " - atualizar             -> Atualiza pacotes Termux (pkg update && pkg upgrade -y)"
-echo " - remoto                  -> Acesso HOST remoto - (ssh usuario@ip)"
-echo " - puxar <caminho_local> [destino_remoto] -> Copia arquivos ou pastas do PC para o Android"
-echo " - enviar <caminho_remoto> [destino_local] -> Copia arquivos ou pastas do Android para o PC"
+echo " - config-ssh            -> Configura/Adiciona servidores Tailscale SSH a qualquer momento"
+echo " - remoto                -> Acesso HOST remoto via Tailscale SSH"
+echo " - sftp-pc               -> Inicia transferencia interativa SFTP com o PC"
+echo " - puxar <remoto> [local]-> Copia arquivos ou pastas do PC para o Android (SCP)"
+echo " - enviar <local> [remoto]-> Copia arquivos ou pastas do Android para o PC (SCP)"
+echo " - sincronizar <orig> <dest> -> Sincronizacao inteligente via Rsync"
+echo " - backuppc              -> Backup completo de /sdcard/Download para o PC via tar+ssh"
 echo " Ctrl + a seguido de |   -> Divide o painel verticalmente (lado a lado)"
 echo " Ctrl + a seguido de -   -> Divide o painel horizontalmente (em cima e embaixo)"
 echo " Ctrl + a seguido de r   -> Recarrega as configuracoes do ~/.tmux.conf"
@@ -596,41 +601,17 @@ layout() {
 }
 EOF
 
-# --- Configuracao Interativa de Acesso Remoto (Tailscale SSH) ---
+# Baixar e registrar o script standalone 'config-ssh' no sistema
+curl -fsSL "${REPO_BASE}/configurar-ssh.sh" -o "$PREFIX/bin/config-ssh"
+chmod +x "$PREFIX/bin/config-ssh"
+
+# Executar configuracao interativa opcional de Acesso Remoto (Tailscale SSH)
 echo ""
-echo "--------------------------------------------------"
-echo " Configuracao Opcional: Acesso Remoto SSH (PC)"
-echo " (Pressione Enter em branco para pular esta etapa)"
-echo "--------------------------------------------------"
-read -rp "Digite o usuario do PC (ex: tux): " SSH_USER
-read -rp "Digite o IP ou nome MagicDNS do PC (ex: 100.x.x.x ou linux-mint): " SSH_IP
-
-if [ -n "$SSH_USER" ] && [ -n "$SSH_IP" ]; then
-  # Remove configuracao anterior, caso o script seja executado novamente
-  sed -i '/# --- INICIO TAILSCALE SSH ---/,/# --- FIM TAILSCALE SSH ---/d' ~/.bashrc
-
-  cat << EOF >> ~/.bashrc
-
-# --- INICIO TAILSCALE SSH ---
-alias remoto='ssh ${SSH_USER}@${SSH_IP}'
-
-puxar() {
-  scp -r "${SSH_USER}@${SSH_IP}:\$1" "\${2:-.}"
-}
-
-enviar() {
-  scp -r "\$1" "${SSH_USER}@${SSH_IP}:\${2:-~/}"
-}
-# --- FIM TAILSCALE SSH ---
-EOF
-
-  echo "Atalhos 'remoto', 'puxar' e 'enviar' configurados para ${SSH_USER}@${SSH_IP}!"
-  echo "Exemplos de uso (apos reiniciar o terminal ou rodar 'source ~/.bashrc'):"
-  echo "  remoto"
-  echo "  puxar <caminho_remoto> [destino_local]"
-  echo "  enviar <caminho_local> [destino_remoto]"
+read -rp "Deseja configurar o Acesso Remoto Tailscale SSH agora? (s/N): " CONFIG_SSH_AGORA
+if [[ "$CONFIG_SSH_AGORA" =~ ^[Ss]$ ]]; then
+    "$PREFIX/bin/config-ssh"
 else
-  echo "Configuracao SSH ignorada."
+    echo "Configuracao SSH ignorada. Voce pode rodar 'config-ssh' a qualquer momento."
 fi
 
 termux-reload-settings
