@@ -13,9 +13,9 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 ```
 
 ### Durante a instalação
-* O sistema solicitará **permissão de armazenamento** (`termux-setup-storage`). Toque em **Permitir**.
+* Caso o sistema solicitar **permissão de armazenamento** (`termux-setup-storage`). Toque em **Permitir**. Demais solicitações: **DEFAULT** apenas toque **ENTER**
 * Ao final, o script perguntará opcionalmente o **usuário** e o **IP Tailscale** do seu PC para configurar os atalhos de acesso remoto. Caso não queira configurar agora, basta pressionar **Enter** em branco para pular.
-* Quando aparecer `"Instalacao concluida!"`, feche o aplicativo completamente tocando em **Exit** na barra de notificações do Android e abra-o novamente.
+* Quando aparecer `"Instalacao concluida!"`, feche o aplicativo completamente tocando em **Exit** na barra de notificações do Android e abra TERMUX novamente.
 
 ---
 
