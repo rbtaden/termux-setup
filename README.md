@@ -1,4 +1,4 @@
-# Termux Setup Automatizado & Tools & Chess Analítico & RSS (♔ ♕ ♖ ♗ ♘ ♙)
+# Termux: Setup Automatizado & Tools & RSS & Chess Analítico  (♔ ♕ ♖ ♗ ♘ ♙)
 
 Script de instalação e personalização completa para o **Termux** no Android. Configura automaticamente o ambiente visual, gerenciador de janelas em painéis, visualizadores de imagem no terminal, leitor de feeds RSS com descanso de tela estilo monitor de fósforo âmbar, motores de xadrez interativos com biblioteca de Grandes Mestres, análise PGN e atalhos para acesso remoto via Tailscale SSH, utilizando dependências próprias armazenadas na pasta `assets/` deste repositório.
 
@@ -70,7 +70,7 @@ apt update && apt full-upgrade -y && pkg install curl -y && curl -fsSL https://r
 
 | Comando | Função |
 | :--- | :--- |
-| `mint` | Conecta-se remotamente ao terminal do PC via SSH (`ssh usuario@ip`). |
+| `remoto` | Conecta-se remotamente ao terminal do PC via SSH (`ssh usuario@ip`). |
 | `puxar <caminho_remoto> [destino_local]` | Copia arquivos ou pastas do PC para o Android via SCP. |
 | `enviar <caminho_local> [destino_remoto]` | Copia arquivos ou pastas do Android para o PC via SCP. |
 
