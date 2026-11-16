@@ -506,7 +506,7 @@ echo " - sf                    -> Inicia Stockfish interativo (Elo, dicas e PGN)
 echo " - analisar              -> Menu interativo para analisar partidas .pgn e blunders"
 echo " - stockfish             -> Abre o motor UCI Stockfish puro"
 echo " - atualizar             -> Atualiza pacotes Termux (pkg update && pkg upgrade -y)"
-echo " - mint                  -> Acesso HOST remoto - (ssh usuario@ip)"
+echo " - remoto                  -> Acesso HOST remoto - (ssh usuario@ip)"
 echo " - puxar <caminho_local> [destino_remoto] -> Copia arquivos ou pastas do PC para o Android"
 echo " - enviar <caminho_remoto> [destino_local] -> Copia arquivos ou pastas do Android para o PC"
 echo " Ctrl + a seguido de |   -> Divide o painel verticalmente (lado a lado)"
@@ -612,7 +612,7 @@ if [ -n "$SSH_USER" ] && [ -n "$SSH_IP" ]; then
   cat << EOF >> ~/.bashrc
 
 # --- INICIO TAILSCALE SSH ---
-alias mint='ssh ${SSH_USER}@${SSH_IP}'
+alias remoto='ssh ${SSH_USER}@${SSH_IP}'
 
 puxar() {
   scp -r "${SSH_USER}@${SSH_IP}:\$1" "\${2:-.}"
@@ -624,9 +624,9 @@ enviar() {
 # --- FIM TAILSCALE SSH ---
 EOF
 
-  echo "Atalhos 'mint', 'puxar' e 'enviar' configurados para ${SSH_USER}@${SSH_IP}!"
+  echo "Atalhos 'remoto', 'puxar' e 'enviar' configurados para ${SSH_USER}@${SSH_IP}!"
   echo "Exemplos de uso (apos reiniciar o terminal ou rodar 'source ~/.bashrc'):"
-  echo "  mint"
+  echo "  remoto"
   echo "  puxar <caminho_remoto> [destino_local]"
   echo "  enviar <caminho_local> [destino_remoto]"
 else
